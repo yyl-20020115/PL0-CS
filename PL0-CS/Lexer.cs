@@ -56,12 +56,9 @@ namespace PL0
             }
             return c;
         }
-        protected string GetCurrentText()
-        {
+        protected string GetCurrentText() =>
             //cursor,cursor -lexeme
-            
-            return this.text;
-        }
+            this.text ?? "";
 
         public Token.ID NextToken()
         {

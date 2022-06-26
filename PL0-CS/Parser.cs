@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
+﻿using PL0.AST;
 namespace PL0
 {
     public class Parser
@@ -21,7 +16,7 @@ namespace PL0
         {
             this.lexer = new(this.reader = reader, this.writer = writer);
         }        
-        public AST.Program Parse()
+        public Program? Parse()
         {
             var program = ParseProgram();
 
@@ -30,19 +25,17 @@ namespace PL0
                 Error("junk after end of program");
             }
 
-            if (failed)
-            {
-                return new();
-            }
+            if (failed) return null;
 
             return program;
 
         }
-        public AST.Program ParseProgram()
+        public Program? ParseProgram()
         {
-            var Program = new AST.Program();
-
-            Program.Block = ParseBlock();
+            var Program = new Program
+            {
+                Block = ParseBlock()
+            };
 
             if (!Consume(Token.ID.Period))
             {
@@ -51,15 +44,15 @@ namespace PL0
 
             return Program;
         }
-        public AST.Block ParseBlock()
+        public Block? ParseBlock()
         {
-            var Block = new AST.Block();
+            var Block = new Block();
 
             if (Consume(Token.ID.Const))
             {
                 do
                 {
-                    var constant = new AST.Constant();
+                    var constant = new Constant();
 
                     if (Match(Token.ID.Identifier))
                     {
@@ -104,9 +97,9 @@ namespace PL0
             {
                 do
                 {
-                    if (Match(Token.ID.Identifier))
+                    if (Match(Token.ID.Identifier) && ExtractIdentifier() is Identifier id)
                     {
-                        Block.Variables.Add(ExtractIdentifier());
+                        Block.Variables.Add(id);
                     }
                     else
                     {
@@ -125,7 +118,7 @@ namespace PL0
 
             while (Consume(Token.ID.Procedure))
             {
-                var procedure = new AST.Procedure();
+                var procedure = new Procedure();
 
                 if (Match(Token.ID.Identifier))
                 {
@@ -162,13 +155,13 @@ namespace PL0
             return Block;
         }
 
-        public AST.Statement ParseStatement()
+        public Statement? ParseStatement()
         {
             switch (id)
             {
                 case Token.ID.Identifier:
                     {
-                        var Statement = new AST.AssignmentStatement();
+                        var Statement = new AssignmentStatement();
 
                         Statement.Left = ExtractIdentifier();
 
@@ -186,7 +179,7 @@ namespace PL0
                     {
                         Next();
 
-                        var Statement = new AST.CallStatement();
+                        var Statement = new CallStatement();
 
                         if (Match(Token.ID.Identifier))
                         {
@@ -204,7 +197,7 @@ namespace PL0
                     {
                         Next();
 
-                        var Statement = new AST.ReadStatement();
+                        var Statement = new ReadStatement();
 
                         if (Match(Token.ID.Identifier))
                         {
@@ -221,7 +214,7 @@ namespace PL0
                 case Token.ID.Write:
                     {
                         Next();
-                        var Statement = new AST.WriteStatement();
+                        var Statement = new WriteStatement();
                         Statement.Expression = ParseExpression();
                         return Statement;
                     }
@@ -229,11 +222,14 @@ namespace PL0
                     {
                         Next();
 
-                        var Statement = new AST.BeginStatement();
+                        var Statement = new BeginStatement();
 
                         do
                         {
-                            Statement.Children.Add(ParseStatement());
+                            if(ParseStatement() is Statement s)
+                            {
+                                Statement.Children.Add(s);
+                            }
                         } while (Consume(Token.ID.Semicolon));
 
                         if (!Consume(Token.ID.End))
@@ -248,7 +244,7 @@ namespace PL0
                     {
                         Next();
 
-                        var Statement = new AST.IfStatement();
+                        var Statement = new IfStatement();
 
                         Statement.Condition = ParseCondition();
 
@@ -266,7 +262,7 @@ namespace PL0
                     {
                         Next();
 
-                        var Statement = new AST.WhileStatement();
+                        var Statement = new WhileStatement();
 
                         Statement.Condition = ParseCondition();
 
@@ -282,16 +278,16 @@ namespace PL0
                     }
                 default:
                     {
-                        return new AST.EmptyStatement();
+                        return new EmptyStatement();
                     }
             }
         }
 
-        public AST.Condition ParseCondition()
+        public Condition? ParseCondition()
         {
             if (Consume(Token.ID.Odd))
             {
-                var Condition = new AST.OddCondition();
+                var Condition = new OddCondition();
                 Condition.Right = ParseExpression();
                 return Condition;
             }
@@ -299,31 +295,31 @@ namespace PL0
             return ParseBinaryCondition();
         }
 
-        public AST.BinaryCondition ParseBinaryCondition()
+        public BinaryCondition? ParseBinaryCondition()
         {
-            AST.BinaryCondition Condition;
+            BinaryCondition? Condition;
 
             var Left = ParseExpression();
 
             switch (id)
             {
                 case Token.ID.Equal:
-                    Condition = new AST.EqualCondition();
+                    Condition = new EqualCondition();
                     break;
                 case Token.ID.NotEqual:
-                    Condition = new AST.NotEqualCondition();
+                    Condition = new NotEqualCondition();
                     break;
                 case Token.ID.LessThan:
-                    Condition = new AST.LessThanCondition();
+                    Condition = new LessThanCondition();
                     break;
                 case Token.ID.LessEqual:
-                    Condition = new AST.LessEqualCondition();
+                    Condition = new LessEqualCondition();
                     break;
                 case Token.ID.GreaterThan:
-                    Condition = new AST.GreaterThanCondition();
+                    Condition = new GreaterThanCondition();
                     break;
                 case Token.ID.GreaterEqual:
-                    Condition = new AST.GreaterEqualCondition();
+                    Condition = new GreaterEqualCondition();
                     break;
                 default:
                     Error("expected a Conditional operator");
@@ -339,9 +335,9 @@ namespace PL0
             return Condition;
         }
 
-        public AST.Expression ParseExpression()
+        public Expression? ParseExpression()
         {
-            AST.Expression Expression;
+            Expression? Expression;
 
             if (Consume(Token.ID.Plus))
             {
@@ -349,7 +345,7 @@ namespace PL0
             }
             else if (Consume(Token.ID.Minus))
             {
-                var subExpression = new AST.NegationExpression();
+                var subExpression = new NegationExpression();
                 subExpression.Right = ParseTerm();
                 Expression = (subExpression);
             }
@@ -360,15 +356,15 @@ namespace PL0
 
             while (Match(Token.ID.Plus) || Match(Token.ID.Minus))
             {
-                AST.BinaryExpression subExpression;
+                BinaryExpression subExpression;
 
                 if (Match(Token.ID.Plus))
                 {
-                    subExpression = new AST.AdditionExpression();
+                    subExpression = new AdditionExpression();
                 }
                 else
                 {
-                    subExpression = new AST.SubtractionExpression();
+                    subExpression = new SubtractionExpression();
                 }
 
                 Next();
@@ -381,23 +377,14 @@ namespace PL0
             return Expression;
         }
 
-        public AST.Expression ParseTerm()
+        public Expression? ParseTerm()
         {
             var term = ParseFactor();
 
             while (Match(Token.ID.Multiply) || Match(Token.ID.Divide))
             {
-                AST.BinaryExpression subTerm;
-
-                if (Match(Token.ID.Multiply))
-                {
-                    subTerm = new AST.MultiplicationExpression();
-                }
-                else
-                {
-                    subTerm = new AST.DivisionExpression();
-                }
-
+                BinaryExpression subTerm = Match(Token.ID.Multiply)
+                    ? new MultiplicationExpression() : new DivisionExpression();
                 Next();
 
                 subTerm.Left = (term);
@@ -408,7 +395,7 @@ namespace PL0
             return term;
         }
 
-        public AST.Expression ParseFactor()
+        public Expression? ParseFactor()
         {
             switch (id)
             {
@@ -441,18 +428,18 @@ namespace PL0
             }
         }
 
-        public AST.Number ExtractNumber()
+        public Number? ExtractNumber()
         {
             var value = (int)(lexer.Value??0);
             Next();
-            return new AST.Number(value);
+            return new Number(value);
         }
 
-        public AST.Identifier ExtractIdentifier()
+        public Identifier? ExtractIdentifier()
         {
             var name = lexer.Value as string;
             Next();
-            return new AST.Identifier(name);
+            return new Identifier(name??"");
         }
 
         protected void Error(string message)
@@ -463,7 +450,7 @@ namespace PL0
         public void Skip()
         {
             while (id < Token.ID.Const)
-                Next();
+                this.Next();
         }
 
         public bool Match(Token.ID expected) => id == expected;

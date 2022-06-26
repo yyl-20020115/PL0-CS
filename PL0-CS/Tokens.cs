@@ -12,11 +12,9 @@ namespace PL0.Token
 
         // Special markers
         Unknown,
-
         // Keywords
         Then,
         Do,
-
         // Operators and punctuation
         Assign,
         Equal,
@@ -31,7 +29,6 @@ namespace PL0.Token
         Divide,
         LParen,
         RParen,
-
         // Identifiers and literals
         Number,
         Identifier,
@@ -48,7 +45,6 @@ namespace PL0.Token
         If,
         While,
         Odd,
-
         // Operators and punctuation
         Period,
         Comma,
@@ -58,6 +54,5 @@ namespace PL0.Token
 
         // Special markers
         EndOfFile,
-    };
-
+    }
 }

@@ -1,15 +1,10 @@
 ﻿using PL0.AST;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace PL0
 {
-    public class DotGenerator :AST.Visitor
+    public class DotGenerator : Visitor
     {
-        public TextWriter Writer=>this.writer;
+        public TextWriter Writer => this.writer;
         
         protected TextWriter writer;
         protected ulong id = 0UL;
@@ -19,278 +14,277 @@ namespace PL0
             this.writer = writer;
         }
 
-        public void Visit(AST.Program program)
+        public void Visit(Program program)
         {
-            this.writeLine("digraph G {");
+            this.WriteLine("digraph G {");
             {
-                this.writeLine("node [shape=oval];");
-                startUnlinkedVertex("Program");
-                program?.Block?.Accept(this);
-                endVertex();
+                this.WriteLine("node [shape=oval];");
+                this.StartUnlinkedVertex("Program");
+                program.Block?.Accept(this);
+                this.EndVertex();
             }
-            this.writeLine("}");
+            this.WriteLine("}");
 
         }
 
         public void Visit(Block block)
         {
-            startVertex("Block");
+            this.StartVertex("Block");
 
-            startVertex("Constants");
+            this.StartVertex("Constants");
             foreach (var constant in block.Constants)
             {
                 constant.Accept(this);
             }
-            endVertex();
+            this.EndVertex();
 
-            startVertex("Variables");
+            this.StartVertex("Variables");
             foreach (var variable in block.Variables)
             {
                 variable.Accept(this);
             }
-            endVertex();
+            this.EndVertex();
 
-            startVertex("Procedures");
+            this.StartVertex("Procedures");
             foreach (var procedure in block.Procedures)
             {
                 procedure.Accept(this);
             }
-            endVertex();
+            this.EndVertex();
 
             block.Statement?.Accept(this);
 
-            endVertex();
+            this.EndVertex();
         }
 
         public void Visit(Constant constant)
         {
-            startVertex("Constant");
-            constant?.Identifier?.Accept(this);
-            constant?.Number?.Accept(this);
-            endVertex();
+            this.StartVertex("Constant");
+            constant.Identifier?.Accept(this);
+            constant.Number?.Accept(this);
+            this.EndVertex();
         }
 
         public void Visit(Procedure procedure)
         {
-            startVertex("Procedure");
-            procedure?.Block?.Accept(this);
-            procedure?.Identifier?.Accept(this);
-            endVertex();
+            this.StartVertex("Procedure");
+            procedure.Block?.Accept(this);
+            procedure.Identifier?.Accept(this);
+            this.EndVertex();
         }
 
         public void Visit(AssignmentStatement statement)
         {
-            startVertex("AssignmentStatement");
-            statement?.Left?.Accept(this);
-            statement?.Right?.Accept(this);
-            endVertex();
+            this.StartVertex("AssignmentStatement");
+            statement.Left?.Accept(this);
+            statement.Right?.Accept(this);
+            this.EndVertex();
         }
 
         public void Visit(CallStatement statement)
         {
-            startVertex("CallStatement");
-            statement?.Callee?.Accept(this);
-            endVertex();
+            this.StartVertex("CallStatement");
+            statement.Callee?.Accept(this);
+            this.EndVertex();
         }
 
         public void Visit(ReadStatement statement)
         {
-            startVertex("ReadStatement");
-            statement?.Identifier?.Accept(this);
-            endVertex();
+            this.StartVertex("ReadStatement");
+            statement.Identifier?.Accept(this);
+            this.EndVertex();
         }
 
         public void Visit(WriteStatement statement)
         {
-            startVertex("WriteStatement");
-            statement?.Expression?.Accept(this);
-            endVertex();
+            this.StartVertex("WriteStatement");
+            statement.Expression?.Accept(this);
+            this.EndVertex();
         }
 
         public void Visit(BeginStatement statement)
         {
-            startVertex("BeginStatement");
+            this.StartVertex("BeginStatement");
             foreach (var child in statement.Children)
             {
                 child?.Accept(this);
             }
-            endVertex();
+            this.EndVertex();
         }
 
         public void Visit(IfStatement statement)
         {
-            startVertex("IfStatement");
-            statement?.Condition?.Accept(this);
-            statement?.Statement?.Accept(this);
-            endVertex();
+            this.StartVertex("IfStatement");
+            statement.Condition?.Accept(this);
+            statement.Statement?.Accept(this);
+            this.EndVertex();
         }
 
         public void Visit(WhileStatement statement)
         {
-            startVertex("WhileStatement");
-            statement?.Condition?.Accept(this);
-            statement?.Statement?.Accept(this);
-            endVertex();
+            this.StartVertex("WhileStatement");
+            statement.Condition?.Accept(this);
+            statement.Statement?.Accept(this);
+            this.EndVertex();
         }
 
         public void Visit(OddCondition condition)
         {
-            startVertex("OddCondition");
-            condition?.Right?.Accept(this);
-            endVertex();
+            this.StartVertex("OddCondition");
+            condition.Right?.Accept(this);
+            this.EndVertex();
         }
 
         public void Visit(EqualCondition condition)
         {
-            startVertex("EqualCondition");
-            condition?.Left?.Accept(this);
-            condition?.Right?.Accept(this);
-            endVertex();
+            this.StartVertex("EqualCondition");
+            condition.Left?.Accept(this);
+            condition.Right?.Accept(this);
+            this.EndVertex();
         }
 
         public void Visit(NotEqualCondition condition)
         {
-            startVertex("NotEqualCondition");
-            condition?.Left?.Accept(this);
-            condition?.Right?.Accept(this);
-            endVertex();
+            this.StartVertex("NotEqualCondition");
+            condition.Left?.Accept(this);
+            condition.Right?.Accept(this);
+            this.EndVertex();
         }
 
         public void Visit(LessThanCondition condition)
         {
-            startVertex("LessThanCondition");
-            condition?.Left?.Accept(this);
-            condition?.Right?.Accept(this);
-            endVertex();
+            this.StartVertex("LessThanCondition");
+            condition.Left?.Accept(this);
+            condition.Right?.Accept(this);
+            this.EndVertex();
         }
 
         public void Visit(LessEqualCondition condition)
         {
-            startVertex("LessEqualCondition");
-            condition?.Left?.Accept(this);
-            condition?.Right?.Accept(this);
-            endVertex();
+            this.StartVertex("LessEqualCondition");
+            condition.Left?.Accept(this);
+            condition.Right?.Accept(this);
+            this.EndVertex();
         }
 
         public void Visit(GreaterThanCondition condition)
         {
-            startVertex("GreaterThanCondition");
-            condition?.Left?.Accept(this);
-            condition?.Right?.Accept(this);
-            endVertex();
+            this.StartVertex("GreaterThanCondition");
+            condition.Left?.Accept(this);
+            condition.Right?.Accept(this);
+            this.EndVertex();
         }
 
         public void Visit(GreaterEqualCondition condition)
         {
-            startVertex("GreaterEqualCondition");
-            condition?.Left?.Accept(this);
-            condition?.Right?.Accept(this);
-            endVertex();
+            this.StartVertex("GreaterEqualCondition");
+            condition.Left?.Accept(this);
+            condition.Right?.Accept(this);
+            this.EndVertex();
         }
 
         public void Visit(AdditionExpression expression)
         {
-            startVertex("AdditionExpression");
-            expression?.Left?.Accept(this);
-            expression?.Right?.Accept(this);
-            endVertex();
+            this.StartVertex("AdditionExpression");
+            expression.Left?.Accept(this);
+            expression.Right?.Accept(this);
+            this.EndVertex();
         }
 
         public void Visit(SubtractionExpression expression)
         {
-            startVertex("SubtractionExpression");
-            expression?.Left?.Accept(this);
-            expression?.Right?.Accept(this);
-            endVertex();
+            this.StartVertex("SubtractionExpression");
+            expression.Left?.Accept(this);
+            expression.Right?.Accept(this);
+            this.EndVertex();
         }
 
         public void Visit(MultiplicationExpression expression)
         {
-            startVertex("MultiplicationExpression");
-            expression?.Left?.Accept(this);
-            expression?.Right?.Accept(this);
-            endVertex();
+            this.StartVertex("MultiplicationExpression");
+            expression.Left?.Accept(this);
+            expression.Right?.Accept(this);
+            this.EndVertex();
         }
 
         public void Visit(DivisionExpression expression)
         {
-            startVertex("DivisionExpression");
-            expression?.Left?.Accept(this);
-            expression?.Right?.Accept(this);
-            endVertex();
+            this.StartVertex("DivisionExpression");
+            expression.Left?.Accept(this);
+            expression.Right?.Accept(this);
+            this.EndVertex();
         }
 
         public void Visit(NegationExpression expression)
         {
-            startVertex("NegationExpression");
-            expression?.Right?.Accept(this);
-            endVertex();
+            this.StartVertex("NegationExpression");
+            expression.Right?.Accept(this);
+            this.EndVertex();
         }
 
         public void Visit(Identifier identifier)
         {
-            startVertex("Identifier");
-            startVertex(identifier.Name, "box");
-            endVertex();
-            endVertex();
+            this.StartVertex("Identifier");
+            this.StartVertex(identifier.Name, "box");
+            this.EndVertex();
+            this.EndVertex();
         }
 
         public void Visit(Number number)
         {
-            startVertex("Number");
+            this.StartVertex("Number");
 
-            startVertex(number.Value, "box");
-            endVertex();
+            this.StartVertex(number.Value, "box");
+            this.EndVertex();
 
-            endVertex();
+            this.EndVertex();
         }
         public void Visit(EmptyStatement empty)
         {
-            startVertex("Empty");
-            endVertex();
+            this.StartVertex("Empty");
+            this.EndVertex();
         }
 
-
-        protected void startVertex(string name)
-        {
-            startUnlinkedVertex(name);
-            addEdgeToParent();
-        }
-        protected void startVertex(string name, string shape)
-        {
-            startUnlinkedVertex(name, shape);
-            addEdgeToParent();
-        }
-
-        protected void startVertex(int value, string shape)
-        {
-            startUnlinkedVertex(value, shape);
-            addEdgeToParent();
-
-        }
-        protected void writeLine(string text)
+        protected void WriteLine(string text)
         {
             this.writer.WriteLine(text);
         }
-        protected void startUnlinkedVertex(string name)
+
+        protected void StartVertex(string name)
         {
-            this.stack.Push(id);
-            this.writeLine($"{this.id++} [label=\"{name}\"]");
+            this.StartUnlinkedVertex(name);
+            this.AddEdgeToParent();
+        }
+        protected void StartVertex(string name, string shape)
+        {
+            this.StartUnlinkedVertex(name, shape);
+            this.AddEdgeToParent();
         }
 
-        protected void startUnlinkedVertex(string name, string shape)
+        protected void StartVertex(int value, string shape)
+        {
+            this.StartUnlinkedVertex(value, shape);
+            this.AddEdgeToParent();
+        }
+        protected void StartUnlinkedVertex(string name)
         {
             this.stack.Push(id);
-            this.writeLine($"{this.id++} [label=\"{name}\" shape={shape}]");
+            this.WriteLine($"{this.id++} [label=\"{name}\"]");
         }
 
-        protected void startUnlinkedVertex(int value, string shape)
+        protected void StartUnlinkedVertex(string name, string shape)
         {
             this.stack.Push(id);
-            this.writeLine($"{this.id++} [label=\"{value}\" shape={shape}]");
+            this.WriteLine($"{this.id++} [label=\"{name}\" shape={shape}]");
         }
 
-        protected void endVertex()
+        protected void StartUnlinkedVertex(int value, string shape)
+        {
+            this.stack.Push(id);
+            this.WriteLine($"{this.id++} [label=\"{value}\" shape={shape}]");
+        }
+
+        protected void EndVertex()
         {
             if (this.stack.Count > 0)
             {
@@ -298,16 +292,15 @@ namespace PL0
             }
         }
 
-        protected void addEdgeToParent()
+        protected void AddEdgeToParent()
         {
-            if (this.stack.Count > 0)
+            var array = this.stack.ToArray();
+            if (array.Length > 2)
             {
-                var array = this.stack.ToArray();
-                var pre_last = array[array.Length-2];
-                var last = array[array.Length - 1];
-                this.writeLine($"{pre_last} -> {last};");
+                var pre_last = array[^2];
+                var last = array[^1];
+                this.WriteLine($"{pre_last} -> {last};");
             }
         }
-
     }
 }
