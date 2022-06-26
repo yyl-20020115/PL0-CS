@@ -8,8 +8,8 @@ namespace PL0.AST
 {
     public class WriteStatement : Statement
     {
-        public void accept(Visitor visitor)
-            => visitor.visit(this);
+        public void Accept(Visitor visitor)
+            => visitor.Visit(this);
         public Expression? Expression { get; set; }
     }
 }

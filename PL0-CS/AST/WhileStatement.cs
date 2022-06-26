@@ -10,8 +10,8 @@ namespace PL0.AST
     {
         public Condition? Condition { get; set; }
         public Statement? Statement { get; set; }
-        public void accept(Visitor visitor)
-            => visitor.visit(this);
+        public void Accept(Visitor visitor)
+            => visitor.Visit(this);
 
     }
 }

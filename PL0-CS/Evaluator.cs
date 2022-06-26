@@ -17,25 +17,30 @@ namespace PL0
     public class Evaluator :AST.Visitor
     {
         protected bool consequence = false;
-        protected TextReader _reader;
-        protected TextWriter _writer;
-        protected Stack<int> stack { get; } = new();
+        protected TextReader reader;
+        protected TextWriter writer;
+        protected Stack<int> stack = new();
         protected List<Scope> scopes = new();
+        public TextWriter Writer => this.writer;
+        public TextReader Reader => this.reader;
+        public Stack<int> Stack => this.stack;
+        public List<Scope> Scopes => this.scopes;
+
         public Evaluator(TextReader reader, TextWriter writer)
         {
-            this._reader = reader;
-            this._writer = writer;   
+            this.reader = reader;
+            this.writer = writer;   
         }
-        public void visit(AST.Program program)
+        public void Visit(AST.Program program)
         {
-            program?.Block?.accept(this);
+            program?.Block?.Accept(this);
         }
 
-        public void visit(AST.Block block)
+        public void Visit(AST.Block block)
         {
             foreach (var  constant in block.Constants)
             {
-                constant?.accept(this);
+                constant?.Accept(this);
             }
 
             foreach (var  variable in block.Variables)
@@ -53,25 +58,25 @@ namespace PL0
                 }
             }
 
-            block?.Statement?.accept(this);
+            block?.Statement?.Accept(this);
         }
 
-        public void visit(AST.Constant constant)
+        public void Visit(AST.Constant constant)
         {
             var  scope = scopes.Last();
             scope.Constants[constant.Identifier?.Name??""] = constant!.Number!.Value;
         }
 
-        public void visit(AST.Procedure procedure)
+        public void Visit(AST.Procedure procedure)
         {
             //scopes.emplace_back();
             var scope = new Scope();
             scopes.Add(scope);
-            procedure.Block?.accept(this);
+            procedure.Block?.Accept(this);
             scopes.RemoveAt(scopes.Count - 1);
         }
 
-        public void visit(AST.AssignmentStatement statement)
+        public void Visit(AST.AssignmentStatement statement)
         {
 
             var sv = new List<Scope>(this.scopes);
@@ -81,7 +86,7 @@ namespace PL0
             {
                 if (scope.Variables.TryGetValue(statement.Left?.Name??"",out var s))
                 {
-                    statement.Right?.accept(this);
+                    statement.Right?.Accept(this);
                     scope.Variables[statement.Left?.Name??""] = stack.Peek();
                     return;
                 }
@@ -90,7 +95,7 @@ namespace PL0
             throw new Exception("unrecognized variable name \"" + statement.Left?.Name + "\" during assignment");
         }
 
-        public void visit(AST.CallStatement statement)
+        public void Visit(AST.CallStatement statement)
         {
             var sv = new List<Scope>(this.scopes);
             sv.Reverse();
@@ -98,7 +103,7 @@ namespace PL0
             foreach (var scope in sv) {
                 if (scope.Procedures.TryGetValue(statement.Callee?.Name??"",out var p))
                 {
-                    p.accept(this);
+                    p.Accept(this);
                     return;
                 }
             }
@@ -106,7 +111,7 @@ namespace PL0
             throw new Exception("unrecognized procedure name \"" + statement.Callee?.Name + "\" during call");
         }
 
-        public void visit(AST.ReadStatement statement)
+        public void Visit(AST.ReadStatement statement)
         {
             var sv = new List<Scope>(this.scopes);
             sv.Reverse();
@@ -126,51 +131,51 @@ namespace PL0
             throw new Exception("unrecognized variable name \"" + statement.Identifier?.Name + "\" during call");
         }
 
-        public void visit(AST.WriteStatement statement)
+        public void Visit(AST.WriteStatement statement)
         {
-            statement.Expression?.accept(this);
+            statement.Expression?.Accept(this);
             
-            this._writer.WriteLine(stack.Peek());
+            this.writer.WriteLine(stack.Peek());
         }
 
-        public void visit(AST.BeginStatement statement)
+        public void Visit(AST.BeginStatement statement)
         {
             foreach (var  child in statement.Children)
             {
-                child?.accept(this);
+                child?.Accept(this);
             }
         }
 
-        public void visit(AST.IfStatement statement)
+        public void Visit(AST.IfStatement statement)
         {
-            statement.Condition?.accept(this);
+            statement.Condition?.Accept(this);
             if (consequence)
             {
-                statement.Statement?.accept(this);
+                statement.Statement?.Accept(this);
             }
         }
 
-        public void visit(AST.WhileStatement statement)
+        public void Visit(AST.WhileStatement statement)
         {
-            statement.Condition?.accept(this);
+            statement.Condition?.Accept(this);
             while (consequence)
             {
-                statement.Statement?.accept(this);
-                statement.Condition?.accept(this);
+                statement.Statement?.Accept(this);
+                statement.Condition?.Accept(this);
             }
         }
 
-        public void visit(AST.OddCondition Condition)
+        public void Visit(AST.OddCondition Condition)
         {
-            Condition.Right?.accept(this);
+            Condition.Right?.Accept(this);
             consequence = 0!=(stack.Peek() & 1);
             stack.Pop();
         }
 
-        public void visit(AST.EqualCondition Condition)
+        public void Visit(AST.EqualCondition Condition)
         {
-            Condition.Left?.accept(this);
-            Condition.Right?.accept(this);
+            Condition.Left?.Accept(this);
+            Condition.Right?.Accept(this);
 
             var right = stack.Peek();
             stack.Pop();
@@ -178,10 +183,10 @@ namespace PL0
             stack.Pop();
         }
 
-        public void visit(AST.NotEqualCondition Condition)
+        public void Visit(AST.NotEqualCondition Condition)
         {
-            Condition.Left?.accept(this);
-            Condition.Right?.accept(this);
+            Condition.Left?.Accept(this);
+            Condition.Right?.Accept(this);
 
             var right = stack.Peek();
             stack.Pop();
@@ -189,10 +194,10 @@ namespace PL0
             stack.Pop();
         }
 
-        public void visit(AST.LessThanCondition Condition)
+        public void Visit(AST.LessThanCondition Condition)
         {
-            Condition.Left?.accept(this);
-            Condition.Right?.accept(this);
+            Condition.Left?.Accept(this);
+            Condition.Right?.Accept(this);
 
             var right = stack.Peek();
             stack.Pop();
@@ -200,10 +205,10 @@ namespace PL0
             stack.Pop();
         }
 
-        public void visit(AST.LessEqualCondition Condition)
+        public void Visit(AST.LessEqualCondition Condition)
         {
-            Condition.Left?.accept(this);
-            Condition.Right?.accept(this);
+            Condition.Left?.Accept(this);
+            Condition.Right?.Accept(this);
 
             var right = stack.Peek();
             stack.Pop();
@@ -211,10 +216,10 @@ namespace PL0
             stack.Pop();
         }
 
-        public void visit(AST.GreaterThanCondition Condition)
+        public void Visit(AST.GreaterThanCondition Condition)
         {
-            Condition.Left?.accept(this);
-            Condition.Right?.accept(this);
+            Condition.Left?.Accept(this);
+            Condition.Right?.Accept(this);
 
             var right = stack.Peek();
             stack.Pop();
@@ -222,10 +227,10 @@ namespace PL0
             stack.Pop();
         }
 
-        public void visit(AST.GreaterEqualCondition Condition)
+        public void Visit(AST.GreaterEqualCondition Condition)
         {
-            Condition.Left?.accept(this);
-            Condition.Right?.accept(this);
+            Condition.Left?.Accept(this);
+            Condition.Right?.Accept(this);
 
              var right = stack.Peek();
             stack.Pop();
@@ -233,10 +238,10 @@ namespace PL0
             stack.Pop();
         }
 
-        public void visit(AST.AdditionExpression Expression)
+        public void Visit(AST.AdditionExpression Expression)
         {
-            Expression.Left?.accept(this);
-            Expression.Right?.accept(this);
+            Expression.Left?.Accept(this);
+            Expression.Right?.Accept(this);
 
              var right = stack.Peek();
             stack.Pop();
@@ -245,10 +250,10 @@ namespace PL0
             stack.Push(v);
         }
 
-        public void visit(AST.SubtractionExpression Expression)
+        public void Visit(AST.SubtractionExpression Expression)
         {
-            Expression.Left?.accept(this);
-            Expression.Right?.accept(this);
+            Expression.Left?.Accept(this);
+            Expression.Right?.Accept(this);
 
              var right = stack.Peek();
             stack.Pop();
@@ -257,10 +262,10 @@ namespace PL0
             stack.Push(v);
         }
 
-        public void visit(AST.MultiplicationExpression Expression)
+        public void Visit(AST.MultiplicationExpression Expression)
         {
-            Expression.Left?.accept(this);
-            Expression.Right?.accept(this);
+            Expression.Left?.Accept(this);
+            Expression.Right?.Accept(this);
 
              var right = stack.Peek();
             stack.Pop();
@@ -269,10 +274,10 @@ namespace PL0
             stack.Push(v);
         }
 
-        public void visit(AST.DivisionExpression Expression)
+        public void Visit(AST.DivisionExpression Expression)
         {
-            Expression.Left?.accept(this);
-            Expression.Right?.accept(this);
+            Expression.Left?.Accept(this);
+            Expression.Right?.Accept(this);
 
              var right = stack.Peek();
             stack.Pop();
@@ -281,16 +286,16 @@ namespace PL0
             stack.Push(v);
         }
 
-        public void visit(AST.NegationExpression Expression)
+        public void Visit(AST.NegationExpression Expression)
         {
-            Expression.Right?.accept(this);
+            Expression.Right?.Accept(this);
             int v = stack.Pop();
             v = -v;
             stack.Push(v);
 
         }
 
-        public void visit(AST.Identifier Identifier)
+        public void Visit(AST.Identifier Identifier)
         {
             var sv = new List<Scope>(this.scopes);
             sv.Reverse();
@@ -312,12 +317,12 @@ namespace PL0
             throw new Exception( "unrecognized symbol name \"" + Identifier.Name + '"');
         }
 
-        public void visit(AST.Number number)
+        public void Visit(AST.Number number)
         {
             stack.Push(number.Value);
         }
 
-        public void visit(EmptyStatement empty)
+        public void Visit(EmptyStatement empty)
         {
         }
     }

@@ -9,8 +9,8 @@ namespace PL0.AST
     public class ReadStatement : Statement
     {
         public Identifier? Identifier { get; set; }
-        public void accept(Visitor visitor)
-            => visitor.visit(this);
+        public void Accept(Visitor visitor)
+            => visitor.Visit(this);
 
     }
 }

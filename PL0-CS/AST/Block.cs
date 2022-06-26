@@ -12,7 +12,7 @@ namespace PL0.AST
         public List<Identifier> Variables { get; } = new();
         public List<Procedure> Procedures { get; } = new();
         public Statement? Statement { get; set; }
-        public void accept(Visitor visitor)
-            => visitor.visit(this);
+        public void Accept(Visitor visitor)
+            => visitor.Visit(this);
     }
 }

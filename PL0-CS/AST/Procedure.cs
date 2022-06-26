@@ -10,7 +10,7 @@ namespace PL0.AST
     {
         public Identifier? Identifier { get; set; }
         public Block? Block { get; set; }
-        public void accept(Visitor visitor)
-            => visitor.visit(this);
+        public void Accept(Visitor visitor)
+            => visitor.Visit(this);
     }
 }

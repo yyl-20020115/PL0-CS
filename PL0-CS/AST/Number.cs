@@ -10,8 +10,8 @@ namespace PL0.AST
     {
         public int Value { get; set; }
 
-        public void accept(Visitor visitor)
-            => visitor.visit(this);
+        public void Accept(Visitor visitor)
+            => visitor.Visit(this);
         public Number(int value)
         {
             Value = value;  

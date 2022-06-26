@@ -8,7 +8,7 @@ namespace PL0.AST
 {
     public class NegationExpression : UnaryExpression
     {
-        public override void accept(Visitor visitor)
-            => visitor.visit(this);
+        public override void Accept(Visitor visitor)
+            => visitor.Visit(this);
     }
 }

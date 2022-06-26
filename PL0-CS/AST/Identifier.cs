@@ -10,8 +10,8 @@ namespace PL0.AST
     {
         public string Name { get; set; } = "";
 
-        public void accept(Visitor visitor)
-            => visitor.visit(this);
+        public void Accept(Visitor visitor)
+            => visitor.Visit(this);
         public Identifier(string name)
         {
             Name = name;

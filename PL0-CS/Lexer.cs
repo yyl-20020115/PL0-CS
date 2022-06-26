@@ -9,25 +9,26 @@ namespace PL0
     public class Lexer
     {
         protected TextReader reader;
-        protected TextWriter diagnostic;
+        protected TextWriter writer;
         protected int cursor = 0;
         protected int lexeme = 0;
         protected int line = 0;
         protected int column = 0;
         protected object? value = null;
-        public TextWriter Diagnostic => this.diagnostic;
-        public TextReader Stream => this.reader;
+        protected string text = "";
+        protected StringBuilder buffer = new();
+        public TextWriter Writer => this.writer;
+        public TextReader Reader => this.reader;
         public int Cursor => this.cursor;
         public int Lexeme => this.lexeme;
         public int Line => this.line;
         public int Column => this.column;
         public object? Value => this.value;
-        public Lexer(TextReader reader, TextWriter diagnostic)
+        public Lexer(TextReader reader, TextWriter writer)
         {
-            this.diagnostic = diagnostic;
+            this.writer = writer;
             this.reader = reader;
         }
-        protected StringBuilder buffer = new();
         protected char GetCurrentChar()
         {
             //*++cursor
@@ -40,7 +41,6 @@ namespace PL0
             }
             return c;
         }
-        protected string text = "";
         protected void CaptureText()
         {
             this.text = buffer.ToString();
@@ -174,7 +174,7 @@ namespace PL0
             yy3:
 #line 20 "Lexer.re"
                 {
-                    diagnostic.WriteLine(line + ": error: unrecognized symbol '" + yych + "'");
+                    writer.WriteLine(line + ": error: unrecognized symbol '" + yych + "'");
                     return Token.ID.Unknown;
                 }
 #line 122 "<stdout>"

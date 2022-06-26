@@ -8,6 +8,6 @@ namespace PL0.AST
 {
     public interface Node
     {
-        void accept(Visitor visitor);
+        void Accept(Visitor visitor);
     }
 }

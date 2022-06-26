@@ -8,24 +8,26 @@ namespace PL0
 {
     public class Parser
     {
-        protected TextWriter diagnostic;
+        public TextReader Reader => this.reader;
+        public TextWriter Writer => this.writer;
+        public Lexer Lexers => this.lexer;
+        public bool Failed => this.failed;
+        protected TextWriter writer;
         protected TextReader reader;
-        protected Lexer lex;
+        protected Lexer lexer;
         protected Token.ID id = Token.ID.EndOfFile;
         protected bool failed = false;
-
-        public Parser(TextReader reader, TextWriter diagnostic)
+        public Parser(TextReader reader, TextWriter writer)
         {
-            this.lex = new(this.reader = reader, this.diagnostic = diagnostic);
-        }
-        
-        public AST.Program GetResult()
+            this.lexer = new(this.reader = reader, this.writer = writer);
+        }        
+        public AST.Program Parse()
         {
-            var program = parseProgram();
+            var program = ParseProgram();
 
-            if (!match(Token.ID.EndOfFile))
+            if (!Match(Token.ID.EndOfFile))
             {
-                error("junk after end of program");
+                Error("junk after end of program");
             }
 
             if (failed)
@@ -36,134 +38,131 @@ namespace PL0
             return program;
 
         }
-        public AST.Program parseProgram()
+        public AST.Program ParseProgram()
         {
-            var program = parseProgram();
+            var Program = new AST.Program();
 
-            if (!match(Token.ID.EndOfFile))
+            Program.Block = ParseBlock();
+
+            if (!Consume(Token.ID.Period))
             {
-                error("junk after end of program");
+                Error("missing '.' at end of program");
             }
 
-            if (failed)
-            {
-                return new();
-            }
-
-            return program;
+            return Program;
         }
-        public AST.Block parseBlock()
+        public AST.Block ParseBlock()
         {
             var Block = new AST.Block();
 
-            if (consume(Token.ID.Const))
+            if (Consume(Token.ID.Const))
             {
                 do
                 {
                     var constant = new AST.Constant();
 
-                    if (match(Token.ID.Identifier))
+                    if (Match(Token.ID.Identifier))
                     {
-                        constant.Identifier = extractIdentifier();
+                        constant.Identifier = ExtractIdentifier();
                     }
                     else
                     {
-                        error("Identifier expected for const name");
-                        skip();
+                        Error("Identifier expected for const name");
+                        Skip();
                         continue;
                     }
 
-                    if (!consume(Token.ID.Equal))
+                    if (!Consume(Token.ID.Equal))
                     {
-                        error("missing '=' after const Identifier");
-                        skip();
+                        Error("missing '=' after const Identifier");
+                        Skip();
                         continue;
                     }
 
-                    if (match(Token.ID.Number))
+                    if (Match(Token.ID.Number))
                     {
-                        constant.Number = extractNumber();
+                        constant.Number = ExtractNumber();
                     }
                     else
                     {
-                        error("Number expected for const value");
-                        skip();
+                        Error("Number expected for const value");
+                        Skip();
                         continue;
                     }
 
                     Block.Constants.Add((constant));
-                } while (consume(Token.ID.Comma));
+                } while (Consume(Token.ID.Comma));
 
-                if (!consume(Token.ID.Semicolon))
+                if (!Consume(Token.ID.Semicolon))
                 {
-                    error("missing ';' after const definitions");
-                    skip();
+                    Error("missing ';' after const definitions");
+                    Skip();
                 }
             }
 
-            if (consume(Token.ID.Var))
+            if (Consume(Token.ID.Var))
             {
                 do
                 {
-                    if (match(Token.ID.Identifier))
+                    if (Match(Token.ID.Identifier))
                     {
-                        Block.Variables.Add(extractIdentifier());
+                        Block.Variables.Add(ExtractIdentifier());
                     }
                     else
                     {
-                        error("Identifier expected for var name");
-                        skip();
+                        Error("Identifier expected for var name");
+                        Skip();
                         continue;
                     }
-                } while (consume(Token.ID.Comma));
+                } while (Consume(Token.ID.Comma));
 
-                if (!consume(Token.ID.Semicolon))
+                if (!Consume(Token.ID.Semicolon))
                 {
-                    error("missing ';' after var declarations");
-                    skip();
+                    Error("missing ';' after var declarations");
+                    Skip();
                 }
             }
 
-            while (consume(Token.ID.Procedure))
+            while (Consume(Token.ID.Procedure))
             {
                 var procedure = new AST.Procedure();
 
-                if (match(Token.ID.Identifier))
+                if (Match(Token.ID.Identifier))
                 {
-                    procedure.Identifier = extractIdentifier();
+                    procedure.Identifier = ExtractIdentifier();
                 }
                 else
                 {
-                    error("Identifier expected for procedure name");
-                    skip();
+                    Error("Identifier expected for procedure name");
+                    Skip();
                     continue;
                 }
 
-                if (!consume(Token.ID.Semicolon))
+                if (!Consume(Token.ID.Semicolon))
                 {
-                    error("missing ';' after procedure name");
-                    skip();
+                    Error("missing ';' after procedure name");
+                    Skip();
                     continue;
                 }
 
-                procedure.Block = parseBlock();
+                procedure.Block = ParseBlock();
 
-                if (!consume(Token.ID.Semicolon))
+                if (!Consume(Token.ID.Semicolon))
                 {
-                    error("missing ';' after procedure Block");
-                    skip();
+                    Error("missing ';' after procedure Block");
+                    Skip();
                     continue;
                 }
 
                 Block.Procedures.Add((procedure));
             }
 
-            Block.Statement = parseStatement();
+            Block.Statement = ParseStatement();
 
             return Block;
         }
 
-        public AST.Statement parseStatement()
+        public AST.Statement ParseStatement()
         {
             switch (id)
             {
@@ -171,113 +170,113 @@ namespace PL0
                     {
                         var Statement = new AST.AssignmentStatement();
 
-                        Statement.Left = extractIdentifier();
+                        Statement.Left = ExtractIdentifier();
 
-                        if (!consume(Token.ID.Assign))
+                        if (!Consume(Token.ID.Assign))
                         {
-                            error("missing ':=' after Identifier");
-                            skip();
+                            Error("missing ':=' after Identifier");
+                            Skip();
                         }
 
-                        Statement.Right = parseExpression();
+                        Statement.Right = ParseExpression();
 
                         return Statement;
                     }
                 case Token.ID.Call:
                     {
-                        next();
+                        Next();
 
                         var Statement = new AST.CallStatement();
 
-                        if (match(Token.ID.Identifier))
+                        if (Match(Token.ID.Identifier))
                         {
-                            Statement.Callee = extractIdentifier();
+                            Statement.Callee = ExtractIdentifier();
                         }
                         else
                         {
-                            error("Identifier expected after keyword \"call\"");
-                            skip();
+                            Error("Identifier expected after keyword \"call\"");
+                            Skip();
                         }
 
                         return Statement;
                     }
                 case Token.ID.Read:
                     {
-                        next();
+                        Next();
 
                         var Statement = new AST.ReadStatement();
 
-                        if (match(Token.ID.Identifier))
+                        if (Match(Token.ID.Identifier))
                         {
-                            Statement.Identifier = extractIdentifier();
+                            Statement.Identifier = ExtractIdentifier();
                         }
                         else
                         {
-                            error("Identifier expected after '?'");
-                            skip();
+                            Error("Identifier expected after '?'");
+                            Skip();
                         }
 
                         return Statement;
                     }
                 case Token.ID.Write:
                     {
-                        next();
+                        Next();
                         var Statement = new AST.WriteStatement();
-                        Statement.Expression = parseExpression();
+                        Statement.Expression = ParseExpression();
                         return Statement;
                     }
                 case Token.ID.Begin:
                     {
-                        next();
+                        Next();
 
                         var Statement = new AST.BeginStatement();
 
                         do
                         {
-                            Statement.Children.Add(parseStatement());
-                        } while (consume(Token.ID.Semicolon));
+                            Statement.Children.Add(ParseStatement());
+                        } while (Consume(Token.ID.Semicolon));
 
-                        if (!consume(Token.ID.End))
+                        if (!Consume(Token.ID.End))
                         {
-                            error("expected keyword \"end\" after begin Statement");
-                            skip();
+                            Error("expected keyword \"end\" after begin Statement");
+                            Skip();
                         }
 
                         return Statement;
                     }
                 case Token.ID.If:
                     {
-                        next();
+                        Next();
 
                         var Statement = new AST.IfStatement();
 
-                        Statement.Condition = parseCondition();
+                        Statement.Condition = ParseCondition();
 
-                        if (!consume(Token.ID.Then))
+                        if (!Consume(Token.ID.Then))
                         {
-                            error("missing keyword \"then\" after if-Condition");
-                            skip();
+                            Error("missing keyword \"then\" after if-Condition");
+                            Skip();
                         }
 
-                        Statement.Statement = parseStatement();
+                        Statement.Statement = ParseStatement();
 
                         return Statement;
                     }
                 case Token.ID.While:
                     {
-                        next();
+                        Next();
 
                         var Statement = new AST.WhileStatement();
 
-                        Statement.Condition = parseCondition();
+                        Statement.Condition = ParseCondition();
 
-                        if (!consume(Token.ID.Do))
+                        if (!Consume(Token.ID.Do))
                         {
-                            error("missing keyword \"do\" after while-Condition");
-                            skip();
+                            Error("missing keyword \"do\" after while-Condition");
+                            Skip();
                         }
 
-                        Statement.Statement = parseStatement();
+                        Statement.Statement = ParseStatement();
 
                         return Statement;
                     }
@@ -288,23 +287,23 @@ namespace PL0
             }
         }
 
-        public AST.Condition parseCondition()
+        public AST.Condition ParseCondition()
         {
-            if (consume(Token.ID.Odd))
+            if (Consume(Token.ID.Odd))
             {
                 var Condition = new AST.OddCondition();
-                Condition.Right = parseExpression();
+                Condition.Right = ParseExpression();
                 return Condition;
             }
 
-            return parseBinaryCondition();
+            return ParseBinaryCondition();
         }
 
-        public AST.BinaryCondition parseBinaryCondition()
+        public AST.BinaryCondition ParseBinaryCondition()
         {
             AST.BinaryCondition Condition;
 
-            var Left = parseExpression();
+            var Left = ParseExpression();
 
             switch (id)
             {
@@ -327,43 +326,43 @@ namespace PL0
                     Condition = new AST.GreaterEqualCondition();
                     break;
                 default:
-                    error("expected a Conditional operator");
-                    skip();
+                    Error("expected a Conditional operator");
+                    Skip();
                     return null;
             }
 
-            next();
+            Next();
 
             Condition.Left = (Left);
-            Condition.Right = parseExpression();
+            Condition.Right = ParseExpression();
 
             return Condition;
         }
 
-        public AST.Expression parseExpression()
+        public AST.Expression ParseExpression()
         {
             AST.Expression Expression;
 
-            if (consume(Token.ID.Plus))
+            if (Consume(Token.ID.Plus))
             {
-                Expression = parseTerm();
+                Expression = ParseTerm();
             }
-            else if (consume(Token.ID.Minus))
+            else if (Consume(Token.ID.Minus))
             {
                 var subExpression = new AST.NegationExpression();
-                subExpression.Right = parseTerm();
+                subExpression.Right = ParseTerm();
                 Expression = (subExpression);
             }
             else
             {
-                Expression = parseTerm();
+                Expression = ParseTerm();
             }
 
-            while (match(Token.ID.Plus) || match(Token.ID.Minus))
+            while (Match(Token.ID.Plus) || Match(Token.ID.Minus))
             {
                 AST.BinaryExpression subExpression;
 
-                if (match(Token.ID.Plus))
+                if (Match(Token.ID.Plus))
                 {
                     subExpression = new AST.AdditionExpression();
                 }
@@ -372,25 +371,25 @@ namespace PL0
                     subExpression = new AST.SubtractionExpression();
                 }
 
-                next();
+                Next();
 
                 subExpression.Left = (Expression);
-                subExpression.Right = parseTerm();
+                subExpression.Right = ParseTerm();
                 Expression = (subExpression);
             }
 
             return Expression;
         }
 
-        public AST.Expression parseTerm()
+        public AST.Expression ParseTerm()
         {
-            var term = parseFactor();
+            var term = ParseFactor();
 
-            while (match(Token.ID.Multiply) || match(Token.ID.Divide))
+            while (Match(Token.ID.Multiply) || Match(Token.ID.Divide))
             {
                 AST.BinaryExpression subTerm;
 
-                if (match(Token.ID.Multiply))
+                if (Match(Token.ID.Multiply))
                 {
                     subTerm = new AST.MultiplicationExpression();
                 }
@@ -399,38 +398,38 @@ namespace PL0
                     subTerm = new AST.DivisionExpression();
                 }
 
-                next();
+                Next();
 
                 subTerm.Left = (term);
-                subTerm.Right = parseFactor();
+                subTerm.Right = ParseFactor();
                 term = (subTerm);
             }
 
             return term;
         }
 
-        public AST.Expression parseFactor()
+        public AST.Expression ParseFactor()
         {
             switch (id)
             {
                 case Token.ID.Identifier:
                     {
-                        return extractIdentifier();
+                        return ExtractIdentifier();
                     }
                 case Token.ID.Number:
                     {
-                        return extractNumber();
+                        return ExtractNumber();
                     }
                 case Token.ID.LParen:
                     {
-                        next();
+                        Next();
 
-                        var Expression = parseExpression();
+                        var Expression = ParseExpression();
 
-                        if (!consume(Token.ID.RParen))
+                        if (!Consume(Token.ID.RParen))
                         {
-                            error("missing ')' after Expression");
-                            skip();
+                            Error("missing ')' after Expression");
+                            Skip();
                         }
 
                         return Expression;
@@ -442,51 +441,44 @@ namespace PL0
             }
         }
 
-        public AST.Number extractNumber()
+        public AST.Number ExtractNumber()
         {
-            var value = (int)(lex.Value??0);
-            next();
+            var value = (int)(lexer.Value??0);
+            Next();
             return new AST.Number(value);
         }
 
-        public AST.Identifier extractIdentifier()
+        public AST.Identifier ExtractIdentifier()
         {
-            var name = lex.Value as string;
-            next();
+            var name = lexer.Value as string;
+            Next();
             return new AST.Identifier(name);
         }
 
-
-        protected void error(string message)
+        protected void Error(string message)
         {
             failed = true;
-            diagnostic.WriteLine($"{lex.Line}: error: {message}");
+            writer.WriteLine($"{lexer.Line}: error: {message}");
         }
-        public void skip()
+        public void Skip()
         {
             while (id < Token.ID.Const)
-            {
-                next();
-            }
-
+                Next();
         }
 
-        public bool match(Token.ID expected) => id == expected;
+        public bool Match(Token.ID expected) => id == expected;
 
-        public bool consume(Token.ID expected)
+        public bool Consume(Token.ID expected)
         {
-            if (match(expected))
+            if (Match(expected))
             {
-                next();
+                Next();
                 return true;
             }
 
             return false;
         }
 
-        public void next()
-        {
-            this.id = lex.NextToken();
-        }
+        public Token.ID Next() => this.id = lexer.NextToken();
     }
 }

@@ -8,8 +8,8 @@ namespace PL0.AST
 {
     public class MultiplicationExpression : BinaryExpression
     {
-        public override void accept(Visitor visitor)
-            => visitor.visit(this);
+        public override void Accept(Visitor visitor)
+            => visitor.Visit(this);
 
     }
 }

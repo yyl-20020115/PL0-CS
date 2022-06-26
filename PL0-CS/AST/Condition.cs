@@ -8,6 +8,6 @@ namespace PL0.AST
 {
     public abstract class Condition : Node
     {
-        public abstract void accept(Visitor visitor);
+        public abstract void Accept(Visitor visitor);
     }
 }

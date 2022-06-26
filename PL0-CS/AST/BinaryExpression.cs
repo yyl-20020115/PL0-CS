@@ -10,7 +10,7 @@ namespace PL0.AST
     {
         public Expression? Left { get; set; }
         public Expression? Right { get; set; }
-        public abstract void accept(Visitor visitor);
+        public abstract void Accept(Visitor visitor);
 
     }
 }

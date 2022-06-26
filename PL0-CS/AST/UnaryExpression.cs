@@ -9,6 +9,6 @@ namespace PL0.AST
     public abstract class UnaryExpression : Expression
     {
         public Expression? Right { get; set; }
-        public abstract void accept(Visitor visitor);
+        public abstract void Accept(Visitor visitor);
     }
 }

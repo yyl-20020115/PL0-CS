@@ -10,6 +10,6 @@ namespace PL0.AST
     {
         public Identifier? Left { get; set; }
         public Expression? Right { get; set; }
-        public virtual void accept(Visitor visitor) => visitor.visit(this);
+        public virtual void Accept(Visitor visitor) => visitor.Visit(this);
     }
 }
