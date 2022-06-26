@@ -1,0 +1,9 @@
+{
+  "profiles": {
+    "PL0-CS": {
+      "commandName": "Project",
+      "commandLineArgs": "primes.pl0",
+      "workingDirectory": "$(ProjectDir)Examples"
+    }
+  }
+}
