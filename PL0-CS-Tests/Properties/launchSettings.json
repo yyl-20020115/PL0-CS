@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "PL0-CS-Tests": {
+      "commandName": "Project",
+      "workingDirectory": "$(SolutionDir)"
+    }
+  }
+}

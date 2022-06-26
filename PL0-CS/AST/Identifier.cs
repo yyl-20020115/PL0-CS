@@ -14,7 +14,8 @@ namespace PL0.AST
             => visitor.Visit(this);
         public Identifier(string name)
         {
-            Name = name;
+            this.Name = name;
         }
+        public override string ToString() => this.Name;
     }
 }

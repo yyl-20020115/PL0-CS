@@ -15,6 +15,7 @@ namespace PL0
         public Parser(TextReader reader, TextWriter writer)
         {
             this.lexer = new(this.reader = reader, this.writer = writer);
+            this.id = this.lexer.NextToken();
         }        
         public Program? Parse()
         {
@@ -449,7 +450,7 @@ namespace PL0
         }
         public void Skip()
         {
-            while (id < Token.ID.Const)
+            while (this.id < Token.ID.Const)
                 this.Next();
         }
 

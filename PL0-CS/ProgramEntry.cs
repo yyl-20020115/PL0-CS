@@ -22,9 +22,10 @@
             if(program != null){
                 var evaluator = new Evaluator(reader, writer);
                 program.Accept(evaluator);
+                return 0;
             }
 
-            return 0;
+            return -1;
 
         }
     }

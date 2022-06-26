@@ -7,10 +7,10 @@ namespace PL0_CS_Tests
     {
         public static string[] Paths = 
         {
-            "../Examples/primes.pl0",
-            "../Examples/procedures.pl0",
-            "../Examples/squares.pl0",
-            "../Examples/BenchMark.pl0"
+            "../../../../Examples/squares.pl0",
+            "../../../../Examples/primes.pl0",
+            "../../../../Examples/procedures.pl0",
+            "../../../../Examples/BenchMark.pl0",
         };
         [TestMethod]
         public void TestExamples()
