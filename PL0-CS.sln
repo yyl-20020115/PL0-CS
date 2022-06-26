@@ -9,7 +9,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PL0-CS-Tests", "PL0-CS-Test
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Examples", "Examples", "{0C0DFC16-5D58-422E-853F-E7AF41028846}"
 	ProjectSection(SolutionItems) = preProject
-		Examples\BenchMark.pl0 = Examples\BenchMark.pl0
 		Examples\primes.pl0 = Examples\primes.pl0
 		Examples\procedures.pl0 = Examples\procedures.pl0
 		Examples\README.md = Examples\README.md

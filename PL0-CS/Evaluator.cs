@@ -15,7 +15,7 @@ namespace PL0
         protected TextReader reader;
         protected TextWriter writer;
         protected Stack<int> stack = new();
-        protected List<Scope> scopes = new();
+        protected List<Scope> scopes = new() { new() };
         public TextWriter Writer => this.writer;
         public TextReader Reader => this.reader;
         public Stack<int> Stack => this.stack;

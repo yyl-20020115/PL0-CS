@@ -25,18 +25,17 @@ namespace PL0
         public int Column => this.column;
         public object? Value => this.value;
         public string Text => this.text;
-        public string Full = "";
+        public string FullText = "";
         public Lexer(TextReader reader, TextWriter error_writer)
         {
-            this.reader = reader;
+            this.FullText = reader.ReadToEnd();
+            this.reader = new StringReader(this.FullText) ;
+            
             this.writer = error_writer;
-            //this.Full = this.reader.ReadToEnd();
         }
         //*++cursor
         protected char GetNextChar()
         {
-            //return this.cursor < this.Full.Length 
-            //    ? this.Full[this.cursor++] : '\0';
             this.reader.Read();
             var i = this.reader.Peek();
             var c = (char)i;
@@ -54,9 +53,6 @@ namespace PL0
 
         protected char GetFirstChar()
         {
-            //return this.cursor < this.Full.Length
-            //  ? this.Full[this.cursor] : '\0';
-
             var i = this.reader.Peek();
             var c = (char)i;
             if (i >= 0)
@@ -71,17 +67,7 @@ namespace PL0
         }
         protected string GetCurrentText()
         {
-            //return this.Full.Substring(this.lexeme, (cursor - lexeme));
-            if (this.buffer.Length > 0)
-            {
-                this.text = this.buffer.ToString();
-                if (text.Length > (cursor - column))
-                {
-                    this.text = this.text[0..(cursor - column)];
-                }
-                this.buffer.Clear();
-            }
-            return this.text ?? String.Empty;
+           return this.text = this.FullText.Substring(this.lexeme, (cursor - lexeme));
         }
 
         //cursor,cursor -lexeme
@@ -91,6 +77,7 @@ namespace PL0
         loop:
             column += (cursor - lexeme);
             lexeme = cursor;
+            this.text = this.buffer.ToString();
             this.buffer.Clear();
             {
                 char yych = GetFirstChar();
@@ -258,11 +245,8 @@ namespace PL0
                 }
             yy18:
                 {
-                    int.TryParse(this.GetCurrentText(), out var v);
+                    value = int.TryParse(this.GetCurrentText().Trim(), out var v) ? v : (object)0;
 
-                    //_snscanf_s(lexeme, (cursor - lexeme), "%d", &v);
-                    value = v;
-                    //value = boost::lexical_cast<int>(lexeme, cursor - lexeme);
                     return Token.ID.Number;
                 }
             yy19:
@@ -372,7 +356,7 @@ namespace PL0
                 }
             yy29:
                 {
-                    value = this.GetCurrentText();
+                    value = this.GetCurrentText().Trim();
                     return Token.ID.Identifier;
                 }
             yy30:
