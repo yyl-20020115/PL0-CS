@@ -39,16 +39,22 @@ namespace PL0
 
             foreach (var variable in block.Variables)
             {
-                var  scope = scopes.Last();
-                scope.Variables[variable?.Name??""]= 0;
+                var scope = scopes.LastOrDefault();
+                if (scope != null)
+                {
+                    scope.Variables[variable?.Name ?? ""] = 0;
+                }
             }
 
             foreach (var procedure in block.Procedures)
             {
                 if (procedure != null)
                 {
-                    var scope = scopes.Last();
-                    scope.Procedures[procedure?.Identifier?.Name ?? ""] = procedure!;
+                    var scope = scopes.LastOrDefault();
+                    if (scope != null)
+                    {
+                        scope.Procedures[procedure?.Identifier?.Name ?? ""] = procedure!;
+                    }
                 }
             }
 

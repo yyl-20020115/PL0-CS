@@ -15,21 +15,15 @@ namespace PL0
         public Parser(TextReader reader, TextWriter writer)
         {
             this.lexer = new(this.reader = reader, this.writer = writer);
-            this.id = this.lexer.NextToken();
-        }        
+            this.FetchNextToken();
+        }
         public Program? Parse()
         {
             var program = ParseProgram();
 
             if (!Match(Token.ID.EndOfFile))
-            {
                 Error("junk after end of program");
-            }
-
-            if (failed) return null;
-
-            return program;
-
+            return failed ? null : program;
         }
         public Program? ParseProgram()
         {
@@ -83,8 +77,7 @@ namespace PL0
                         Skip();
                         continue;
                     }
-
-                    Block.Constants.Add((constant));
+                    Block.Constants.Add(constant);
                 } while (Consume(Token.ID.Comma));
 
                 if (!Consume(Token.ID.Semicolon))
@@ -178,8 +171,7 @@ namespace PL0
                     }
                 case Token.ID.Call:
                     {
-                        Next();
-
+                        this.FetchNextToken();
                         var Statement = new CallStatement();
 
                         if (Match(Token.ID.Identifier))
@@ -196,8 +188,7 @@ namespace PL0
                     }
                 case Token.ID.Read:
                     {
-                        Next();
-
+                        this.FetchNextToken();
                         var Statement = new ReadStatement();
 
                         if (Match(Token.ID.Identifier))
@@ -214,20 +205,20 @@ namespace PL0
                     }
                 case Token.ID.Write:
                     {
-                        Next();
+                        this.FetchNextToken();
                         var Statement = new WriteStatement();
                         Statement.Expression = ParseExpression();
                         return Statement;
                     }
                 case Token.ID.Begin:
                     {
-                        Next();
+                        this.FetchNextToken();
 
                         var Statement = new BeginStatement();
 
                         do
                         {
-                            if(ParseStatement() is Statement s)
+                            if (ParseStatement() is Statement s)
                             {
                                 Statement.Children.Add(s);
                             }
@@ -243,7 +234,7 @@ namespace PL0
                     }
                 case Token.ID.If:
                     {
-                        Next();
+                        this.FetchNextToken();
 
                         var Statement = new IfStatement();
 
@@ -261,7 +252,7 @@ namespace PL0
                     }
                 case Token.ID.While:
                     {
-                        Next();
+                        this.FetchNextToken();
 
                         var Statement = new WhileStatement();
 
@@ -328,7 +319,7 @@ namespace PL0
                     return null;
             }
 
-            Next();
+            this.FetchNextToken();
 
             Condition.Left = (Left);
             Condition.Right = ParseExpression();
@@ -368,7 +359,7 @@ namespace PL0
                     subExpression = new SubtractionExpression();
                 }
 
-                Next();
+                this.FetchNextToken();
 
                 subExpression.Left = (Expression);
                 subExpression.Right = ParseTerm();
@@ -386,7 +377,7 @@ namespace PL0
             {
                 BinaryExpression subTerm = Match(Token.ID.Multiply)
                     ? new MultiplicationExpression() : new DivisionExpression();
-                Next();
+                this.FetchNextToken();
 
                 subTerm.Left = (term);
                 subTerm.Right = ParseFactor();
@@ -410,7 +401,7 @@ namespace PL0
                     }
                 case Token.ID.LParen:
                     {
-                        Next();
+                        this.FetchNextToken();
 
                         var Expression = ParseExpression();
 
@@ -431,42 +422,47 @@ namespace PL0
 
         public Number? ExtractNumber()
         {
-            var value = (int)(lexer.Value??0);
-            Next();
+            var value = (int)(lexer.Value ?? 0);
+            this.FetchNextToken();
             return new Number(value);
         }
 
         public Identifier? ExtractIdentifier()
         {
             var name = lexer.Value as string;
-            Next();
-            return new Identifier(name??"");
+            this.FetchNextToken();
+            return new Identifier(name ?? "");
         }
 
-        protected void Error(string message)
+        protected int Error(string message)
         {
             failed = true;
             writer.WriteLine($"{lexer.Line}: error: {message}");
+            return 0;
         }
-        public void Skip()
+        public int Skip()
         {
+            var c = 0;
             while (this.id < Token.ID.Const)
-                this.Next();
+            {
+                this.FetchNextToken();
+                c++;
+            }
+            return c;
         }
 
         public bool Match(Token.ID expected) => id == expected;
-
         public bool Consume(Token.ID expected)
         {
             if (Match(expected))
             {
-                Next();
+                this.FetchNextToken();
                 return true;
             }
 
             return false;
         }
 
-        public Token.ID Next() => this.id = lexer.NextToken();
+        public Token.ID FetchNextToken() => this.id = lexer.NextToken();
     }
 }

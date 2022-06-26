@@ -24,13 +24,19 @@ namespace PL0
         public int Line => this.line;
         public int Column => this.column;
         public object? Value => this.value;
-        public Lexer(TextReader reader, TextWriter writer)
+        public string Text => this.text;
+        public string Full = "";
+        public Lexer(TextReader reader, TextWriter error_writer)
         {
-            this.writer = writer;
             this.reader = reader;
+            this.writer = error_writer;
+            //this.Full = this.reader.ReadToEnd();
         }
-        protected char GetCurrentChar()
+        //*++cursor
+        protected char GetNextChar()
         {
+            //return this.cursor < this.Full.Length 
+            //    ? this.Full[this.cursor++] : '\0';
             this.reader.Read();
             var i = this.reader.Peek();
             var c = (char)i;
@@ -39,23 +45,25 @@ namespace PL0
                 ++this.cursor;
                 buffer.Append(c);
             }
-            else
+            else //-1
             {
                 c = '\0';
             }
             return c;
         }
-        
+
         protected char GetFirstChar()
         {
+            //return this.cursor < this.Full.Length
+            //  ? this.Full[this.cursor] : '\0';
+
             var i = this.reader.Peek();
             var c = (char)i;
             if (i >= 0)
             {
-                ++this.cursor;
                 buffer.Append(c);
             }
-            else
+            else //-1
             {
                 c = '\0';
             }
@@ -63,6 +71,7 @@ namespace PL0
         }
         protected string GetCurrentText()
         {
+            //return this.Full.Substring(this.lexeme, (cursor - lexeme));
             if (this.buffer.Length > 0)
             {
                 this.text = this.buffer.ToString();
@@ -72,14 +81,13 @@ namespace PL0
                 }
                 this.buffer.Clear();
             }
-            return this.text??String.Empty;
+            return this.text ?? String.Empty;
         }
 
         //cursor,cursor -lexeme
 
         public Token.ID NextToken()
         {
-
         loop:
             column += (cursor - lexeme);
             lexeme = cursor;
@@ -177,17 +185,17 @@ namespace PL0
                     default: goto yy2;
                 }
             yy1:
-                ++cursor;
+                GetNextChar();
                 { return Token.ID.EndOfFile; }
             yy2:
-                ++cursor;
+                GetNextChar();
             yy3:
                 {
                     writer.WriteLine(line + ": error: unrecognized symbol '" + yych + "'");
                     return Token.ID.Unknown;
                 }
             yy4:
-                yych = GetCurrentChar();
+                yych = GetNextChar();
                 switch (yych)
                 {
                     case '\t':
@@ -200,40 +208,40 @@ namespace PL0
             yy5:
                 { goto loop; }
             yy6:
-                ++cursor;
+                GetNextChar();
                 { ++line; column = 0; goto loop; }
             yy7:
-                ++cursor;
+                GetNextChar();
                 { return Token.ID.Write; }
             yy8:
-                ++cursor;
+                GetNextChar();
                 { return Token.ID.NotEqual; }
             yy9:
-                ++cursor;
+                GetNextChar();
                 { return Token.ID.LParen; }
             yy10:
-                ++cursor;
+                GetNextChar();
                 { return Token.ID.RParen; }
             yy11:
-                ++cursor;
+                GetNextChar();
                 { return Token.ID.Multiply; }
             yy12:
-                ++cursor;
+                GetNextChar();
                 { return Token.ID.Plus; }
             yy13:
-                ++cursor;
+                GetNextChar();
                 { return Token.ID.Comma; }
             yy14:
-                ++cursor;
+                GetNextChar();
                 { return Token.ID.Minus; }
             yy15:
-                ++cursor;
+                GetNextChar();
                 { return Token.ID.Period; }
             yy16:
-                ++cursor;
+                GetNextChar();
                 { return Token.ID.Divide; }
             yy17:
-                yych = GetCurrentChar();
+                yych = GetNextChar();
                 switch (yych)
                 {
                     case '0':
@@ -258,17 +266,17 @@ namespace PL0
                     return Token.ID.Number;
                 }
             yy19:
-                yych = GetCurrentChar();
+                yych = GetNextChar();
                 switch (yych)
                 {
                     case '=': goto yy40;
                     default: goto yy3;
                 }
             yy20:
-                ++cursor;
+                GetNextChar();
                 { return Token.ID.Semicolon; }
             yy21:
-                yych = GetCurrentChar();
+                yych = GetNextChar();
                 switch (yych)
                 {
                     case '=': goto yy41;
@@ -277,10 +285,10 @@ namespace PL0
             yy22:
                 { return Token.ID.LessThan; }
             yy23:
-                ++cursor;
+                GetNextChar();
                 { return Token.ID.Equal; }
             yy24:
-                yych = GetCurrentChar();
+                yych = GetNextChar();
                 switch (yych)
                 {
                     case '=': goto yy42;
@@ -290,10 +298,10 @@ namespace PL0
 
                 { return Token.ID.GreaterThan; }
             yy26:
-                ++cursor;
+                GetNextChar();
                 { return Token.ID.Read; }
             yy27:
-                yych = GetCurrentChar();
+                yych = GetNextChar();
             yy28:
                 switch (yych)
                 {
@@ -368,7 +376,7 @@ namespace PL0
                     return Token.ID.Identifier;
                 }
             yy30:
-                yych = GetCurrentChar();
+                yych = GetNextChar();
                 switch (yych)
                 {
                     case 'E':
@@ -376,7 +384,7 @@ namespace PL0
                     default: goto yy28;
                 }
             yy31:
-                yych = GetCurrentChar();
+                yych = GetNextChar();
                 switch (yych)
                 {
                     case 'A':
@@ -386,7 +394,7 @@ namespace PL0
                     default: goto yy28;
                 }
             yy32:
-                yych = GetCurrentChar();
+                yych = GetNextChar();
                 switch (yych)
                 {
                     case 'O':
@@ -394,7 +402,7 @@ namespace PL0
                     default: goto yy28;
                 }
             yy33:
-                yych = GetCurrentChar();
+                yych = GetNextChar();
                 switch (yych)
                 {
                     case 'N':
@@ -402,7 +410,7 @@ namespace PL0
                     default: goto yy28;
                 }
             yy34:
-                yych = GetCurrentChar();
+                yych = GetNextChar();
                 switch (yych)
                 {
                     case 'F':
@@ -410,7 +418,7 @@ namespace PL0
                     default: goto yy28;
                 }
             yy35:
-                yych = GetCurrentChar();
+                yych = GetNextChar();
                 switch (yych)
                 {
                     case 'D':
@@ -418,7 +426,7 @@ namespace PL0
                     default: goto yy28;
                 }
             yy36:
-                yych = GetCurrentChar();
+                yych = GetNextChar();
                 switch (yych)
                 {
                     case 'R':
@@ -426,7 +434,7 @@ namespace PL0
                     default: goto yy28;
                 }
             yy37:
-                yych = GetCurrentChar();
+                yych = GetNextChar();
                 switch (yych)
                 {
                     case 'H':
@@ -434,7 +442,7 @@ namespace PL0
                     default: goto yy28;
                 }
             yy38:
-                yych = GetCurrentChar();
+                yych = GetNextChar();
                 switch (yych)
                 {
                     case 'A':
@@ -442,7 +450,7 @@ namespace PL0
                     default: goto yy28;
                 }
             yy39:
-                yych = GetCurrentChar();
+                yych = GetNextChar();
                 switch (yych)
                 {
                     case 'H':
@@ -450,16 +458,16 @@ namespace PL0
                     default: goto yy28;
                 }
             yy40:
-                ++cursor;
+                GetNextChar();
                 { return Token.ID.Assign; }
             yy41:
-                ++cursor;
+                GetNextChar();
                 { return Token.ID.LessEqual; }
             yy42:
-                ++cursor;
+                GetNextChar();
                 { return Token.ID.GreaterEqual; }
             yy43:
-                yych = GetCurrentChar();
+                yych = GetNextChar();
                 switch (yych)
                 {
                     case 'G':
@@ -467,7 +475,7 @@ namespace PL0
                     default: goto yy28;
                 }
             yy44:
-                yych = GetCurrentChar();
+                yych = GetNextChar();
                 switch (yych)
                 {
                     case 'L':
@@ -475,7 +483,7 @@ namespace PL0
                     default: goto yy28;
                 }
             yy45:
-                yych = GetCurrentChar();
+                yych = GetNextChar();
                 switch (yych)
                 {
                     case 'N':
@@ -483,7 +491,7 @@ namespace PL0
                     default: goto yy28;
                 }
             yy46:
-                yych = GetCurrentChar();
+                yych = GetNextChar();
                 switch (yych)
                 {
                     case '0':
@@ -554,7 +562,7 @@ namespace PL0
             yy47:
                 { return Token.ID.Do; }
             yy48:
-                yych = GetCurrentChar();
+                yych = GetNextChar();
                 switch (yych)
                 {
                     case 'D':
@@ -562,7 +570,7 @@ namespace PL0
                     default: goto yy28;
                 }
             yy49:
-                yych = GetCurrentChar();
+                yych = GetNextChar();
                 switch (yych)
                 {
                     case '0':
@@ -633,7 +641,7 @@ namespace PL0
             yy50:
                 { return Token.ID.If; }
             yy51:
-                yych = GetCurrentChar();
+                yych = GetNextChar();
                 switch (yych)
                 {
                     case 'D':
@@ -641,7 +649,7 @@ namespace PL0
                     default: goto yy28;
                 }
             yy52:
-                yych = GetCurrentChar();
+                yych = GetNextChar();
                 switch (yych)
                 {
                     case 'O':
@@ -649,7 +657,7 @@ namespace PL0
                     default: goto yy28;
                 }
             yy53:
-                yych = GetCurrentChar();
+                yych = GetNextChar();
                 switch (yych)
                 {
                     case 'E':
@@ -657,7 +665,7 @@ namespace PL0
                     default: goto yy28;
                 }
             yy54:
-                yych = GetCurrentChar();
+                yych = GetNextChar();
                 switch (yych)
                 {
                     case 'R':
@@ -665,7 +673,7 @@ namespace PL0
                     default: goto yy28;
                 }
             yy55:
-                yych = GetCurrentChar();
+                yych = GetNextChar();
                 switch (yych)
                 {
                     case 'I':
@@ -673,7 +681,7 @@ namespace PL0
                     default: goto yy28;
                 }
             yy56:
-                yych = GetCurrentChar();
+                yych = GetNextChar();
                 switch (yych)
                 {
                     case 'I':
@@ -681,7 +689,7 @@ namespace PL0
                     default: goto yy28;
                 }
             yy57:
-                yych = GetCurrentChar();
+                yych = GetNextChar();
                 switch (yych)
                 {
                     case 'L':
@@ -689,7 +697,7 @@ namespace PL0
                     default: goto yy28;
                 }
             yy58:
-                yych = GetCurrentChar();
+                yych = GetNextChar();
                 switch (yych)
                 {
                     case 'S':
@@ -697,7 +705,7 @@ namespace PL0
                     default: goto yy28;
                 }
             yy59:
-                yych = GetCurrentChar();
+                yych = GetNextChar();
                 switch (yych)
                 {
                     case '0':
@@ -768,7 +776,7 @@ namespace PL0
             yy60:
                 { return Token.ID.End; }
             yy61:
-                yych = GetCurrentChar();
+                yych = GetNextChar();
                 switch (yych)
                 {
                     case '0':
@@ -839,7 +847,7 @@ namespace PL0
             yy62:
                 { return Token.ID.Odd; }
             yy63:
-                yych = GetCurrentChar();
+                yych = GetNextChar();
                 switch (yych)
                 {
                     case 'C':
@@ -847,7 +855,7 @@ namespace PL0
                     default: goto yy28;
                 }
             yy64:
-                yych = GetCurrentChar();
+                yych = GetNextChar();
                 switch (yych)
                 {
                     case 'N':
@@ -855,7 +863,7 @@ namespace PL0
                     default: goto yy28;
                 }
             yy65:
-                yych = GetCurrentChar();
+                yych = GetNextChar();
                 switch (yych)
                 {
                     case '0':
@@ -926,7 +934,7 @@ namespace PL0
             yy66:
                 { return Token.ID.Var; }
             yy67:
-                yych = GetCurrentChar();
+                yych = GetNextChar();
                 switch (yych)
                 {
                     case 'L':
@@ -934,7 +942,7 @@ namespace PL0
                     default: goto yy28;
                 }
             yy68:
-                yych = GetCurrentChar();
+                yych = GetNextChar();
                 switch (yych)
                 {
                     case 'N':
@@ -942,7 +950,7 @@ namespace PL0
                     default: goto yy28;
                 }
             yy69:
-                yych = GetCurrentChar();
+                yych = GetNextChar();
                 switch (yych)
                 {
                     case '0':
@@ -1013,7 +1021,7 @@ namespace PL0
             yy70:
                 { return Token.ID.Call; }
             yy71:
-                yych = GetCurrentChar();
+                yych = GetNextChar();
                 switch (yych)
                 {
                     case 'T':
@@ -1021,7 +1029,7 @@ namespace PL0
                     default: goto yy28;
                 }
             yy72:
-                yych = GetCurrentChar();
+                yych = GetNextChar();
                 switch (yych)
                 {
                     case 'E':
@@ -1029,7 +1037,7 @@ namespace PL0
                     default: goto yy28;
                 }
             yy73:
-                yych = GetCurrentChar();
+                yych = GetNextChar();
                 switch (yych)
                 {
                     case '0':
@@ -1100,7 +1108,7 @@ namespace PL0
             yy74:
                 { return Token.ID.Then; }
             yy75:
-                yych = GetCurrentChar();
+                yych = GetNextChar();
                 switch (yych)
                 {
                     case 'E':
@@ -1108,7 +1116,7 @@ namespace PL0
                     default: goto yy28;
                 }
             yy76:
-                yych = GetCurrentChar();
+                yych = GetNextChar();
                 switch (yych)
                 {
                     case '0':
@@ -1179,7 +1187,7 @@ namespace PL0
             yy77:
                 { return Token.ID.Begin; }
             yy78:
-                yych = GetCurrentChar();
+                yych = GetNextChar();
                 switch (yych)
                 {
                     case '0':
@@ -1250,7 +1258,7 @@ namespace PL0
             yy79:
                 { return Token.ID.Const; }
             yy80:
-                yych = GetCurrentChar();
+                yych = GetNextChar();
                 switch (yych)
                 {
                     case 'D':
@@ -1258,7 +1266,7 @@ namespace PL0
                     default: goto yy28;
                 }
             yy81:
-                yych = GetCurrentChar();
+                yych = GetNextChar();
                 switch (yych)
                 {
                     case '0':
@@ -1329,7 +1337,7 @@ namespace PL0
             yy82:
                 { return Token.ID.While; }
             yy83:
-                yych = GetCurrentChar();
+                yych = GetNextChar();
                 switch (yych)
                 {
                     case 'U':
@@ -1337,7 +1345,7 @@ namespace PL0
                     default: goto yy28;
                 }
             yy84:
-                yych = GetCurrentChar();
+                yych = GetNextChar();
                 switch (yych)
                 {
                     case 'R':
@@ -1345,7 +1353,7 @@ namespace PL0
                     default: goto yy28;
                 }
             yy85:
-                yych = GetCurrentChar();
+                yych = GetNextChar();
                 switch (yych)
                 {
                     case 'E':
@@ -1353,7 +1361,7 @@ namespace PL0
                     default: goto yy28;
                 }
             yy86:
-                yych = GetCurrentChar();
+                yych = GetNextChar();
                 switch (yych)
                 {
                     case '0':
